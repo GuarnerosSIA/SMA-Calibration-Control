@@ -77,13 +77,21 @@ results = pd.DataFrame()
 temp = {}
 
 #Elementos SuperTwisting
+xo = 0
+Tau = 0.3
+#w1 signal
+#w2 derivative
+w1_a = 0
+w2_a = 0
+l1 = 1
+l2 = 0.001
 
 #####Inicia PuertoSerial
-Tau=150
+Tau=100
 FlagCool=0
 for steps in range(Tau):
     if(steps==0):
-        ser.write(b'A1700\n')
+        ser.write(b'A2000\n')
         Tic=time.time()
     if(steps>(Tau/5) and FlagCool==0):
         ser.write(b'B')
@@ -114,10 +122,15 @@ for steps in range(Tau):
             subs = np.array([realPointsA[0,0]/realPointsA[2,0] - realPointsB[0,0]/realPointsB[2,0],realPointsA[1,0]/realPointsA[2,0] - realPointsB[1,0]/realPointsB[2,0]])
             #subs = np.array([cX1 - cX2,cY1 - cY2])
             dist = np.sqrt(subs[0]*subs[0] + subs[1]*subs[1])
-            if(dist<144):
-                print('Ruuuuuun!')
             temp['Distancia']=dist
             temp['Tiempo']=time.time()-Tic
+            #SuperTwisting
+            e1 = w1_a-dist
+            w1 = Tau*(w2_a - l1*np.sqrt(np.abs(e1))*np.sign(e1)) + w1_a
+            w2 = Tau*(-l2*np.sign(e1)) + w2_a
+            w1_a = w1
+            w2_a = w2
+            temp['Derivative']=e1
             #tiempotl=time.time()
             results = results.append(temp, ignore_index=True)
         for c in contours:
@@ -141,7 +154,7 @@ results.to_csv('Resultados de Mediciones/PruebadeCarpeta.csv')
 cv2.imwrite('Original.png', frame)
 cv2.imwrite('Mask.png', mask)
 cv2.imwrite('Opening.png', opening)
-results.plot(x='Tiempo',y='Distancia')
+results.plot(x='Tiempo',y=['Distancia','Derivative'])
 plt.show()
 cap.release()
 cv2.destroyAllWindows()
