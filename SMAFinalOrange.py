@@ -76,13 +76,15 @@ upper_green = np.array([20,255,255])
 results = pd.DataFrame()
 temp = {}
 
+#Elementos SuperTwisting
 
 #####Inicia PuertoSerial
-ser.write(b'A2000\n')
-Tau=100
+Tau=150
 FlagCool=0
-tiempotl=time.time()
 for steps in range(Tau):
+    if(steps==0):
+        ser.write(b'A1700\n')
+        Tic=time.time()
     if(steps>(Tau/5) and FlagCool==0):
         ser.write(b'B')
         FlagCool=1
@@ -115,7 +117,7 @@ for steps in range(Tau):
             if(dist<144):
                 print('Ruuuuuun!')
             temp['Distancia']=dist
-            #temp['Tiempo']=tiempotl-time.time()
+            temp['Tiempo']=time.time()-Tic
             #tiempotl=time.time()
             results = results.append(temp, ignore_index=True)
         for c in contours:
@@ -139,7 +141,7 @@ results.to_csv('Resultados de Mediciones/PruebadeCarpeta.csv')
 cv2.imwrite('Original.png', frame)
 cv2.imwrite('Mask.png', mask)
 cv2.imwrite('Opening.png', opening)
-results.plot()
+results.plot(x='Tiempo',y='Distancia')
 plt.show()
 cap.release()
 cv2.destroyAllWindows()
