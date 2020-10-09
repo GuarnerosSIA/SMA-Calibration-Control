@@ -70,9 +70,8 @@ while FLAG:
 kernel = np.ones((5,5),np.uint8)
 ###definir los limites
 
-lower_green = np.array([0,150,100])
-upper_green = np.array([35,255,255])
-
+lower_green = np.array([0,200,50])
+upper_green = np.array([20,255,255])
 #Create database
 results = pd.DataFrame()
 temp = {}
@@ -80,7 +79,7 @@ temp = {}
 
 #####Inicia PuertoSerial
 ser.write(b'A2000\n')
-Tau=500
+Tau=100
 FlagCool=0
 tiempotl=time.time()
 for steps in range(Tau):
@@ -136,7 +135,7 @@ for steps in range(Tau):
         break
 
 ser.write(b'B')
-results.to_csv('Results500g1000PWM7H50m.csv')
+results.to_csv('Resultados de Mediciones/PruebadeCarpeta.csv')
 cv2.imwrite('Original.png', frame)
 cv2.imwrite('Mask.png', mask)
 cv2.imwrite('Opening.png', opening)
