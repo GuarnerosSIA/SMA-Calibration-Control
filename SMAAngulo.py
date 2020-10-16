@@ -88,15 +88,16 @@ xo = 0
 TauST = 0.15
 #w1 signal
 #w2 derivative
-w1_a = 20
+w1_a = 0
 w2_a = 0
-l1 = 4
-l2 = 6
+l1 = 2
+l2 = 0.5
 subsA = np.zeros((2))
 subsB = np.zeros((2))
 #####Inicia PuertoSerial
 Tau=100
-Cycles=1
+Cycles=10
+
 Tic=time.time()
 cameraPointsA = np.zeros((3,1))
 cameraPointsB = np.zeros((3,1))
@@ -105,7 +106,7 @@ for Cycle in range(Cycles):
     FlagCool=0
     for steps in range(Tau):
         if(steps==0):
-            ser.write(b'A3000\n')
+            ser.write(b'A4000\n')
         if(steps>(Tau/10) and FlagCool==0):
             ser.write(b'B')
             FlagCool=1
@@ -131,24 +132,20 @@ for Cycle in range(Cycles):
                 cY1 = int(P1['m01']/P1['m00'])
                 cX2 = int(P2['m10']/P2['m00'])
                 cY2 = int(P2['m01']/P2['m00'])
-                #cameraPointsA = np.reshape(np.array([cX1,cY1,1]),(-1,1))
                 cameraPointsA[0,0] = cX1
                 cameraPointsA[1,0] = cY1
                 cameraPointsA[2,0] = 1
                 realPointsA = np.linalg.inv(mtx@R)@(cameraPointsA)
-                #cameraPointsB = np.reshape(np.array([cX2,cY2,1]),(-1,1))
                 cameraPointsB[0,0] = cX2
                 cameraPointsB[1,0] = cY2
                 cameraPointsB[2,0] = 1
                 realPointsB = np.linalg.inv(mtx@R)@(cameraPointsB)
-                #subs = np.array([realPointsA[0,0]/realPointsA[2,0] - realPointsB[0,0]/realPointsB[2,0],realPointsA[1,0]/realPointsA[2,0] - realPointsB[1,0]/realPointsB[2,0]])
                 subsA[0] = realPointsA[0,0]/realPointsA[2,0]
                 subsA[1] = realPointsA[1,0]/realPointsA[2,0]
                 subsB[0] = realPointsB[0,0]/realPointsB[2,0]
                 subsB[1] = realPointsB[1,0]/realPointsB[2,0]
                 #Find the angle in degrees
                 dist = math.degrees(math.atan2((subsB[1]-subsA[1]),(subsB[0]-subsA[0])))
-                #dist = np.sqrt(subs[0]*subs[0] + subs[1]*subs[1])
                 temp['Angulo']=dist
                 temp['Tiempo']=time.time()-Tic
                 #SuperTwisting
@@ -159,31 +156,32 @@ for Cycle in range(Cycles):
                 w2_a = w2
                 temp['Aprox']=w1
                 temp['Derivative']=w2
-                #tiempotl=time.time()
+                temp['Norma'] = np.abs(e1)
                 results = results.append(temp, ignore_index=True)
-            #for c in contours:
-                #M = cv2.moments(c)
-                #if M['m00'] != 0:
-                    #cX = int(M['m10']/M['m00'])
-                    #cY = int(M['m01']/M['m00'])
-                    #cv2.circle(opening, (cX, cY), 5, (0, 0, 0), -1)
-                    #cv2.putText(opening, "centroid", (cX - 25, cY - 25),
-                                #cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
-        #cv2.imshow('2',opening)
-        #if cv2.waitKey(1) & 0xFF == ord('q'):
-            #time.sleep(1)
-            #break
+            for c in contours:
+                M = cv2.moments(c)
+                if M['m00'] != 0:
+                    cX = int(M['m10']/M['m00'])
+                    cY = int(M['m01']/M['m00'])
+                    cv2.circle(opening, (cX, cY), 5, (0, 0, 0), -1)
+                    cv2.putText(opening, "centroid", (cX - 25, cY - 25),
+                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+        cv2.imshow('2',opening)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            time.sleep(1)
+            break
     
 ser.write(b'B')
-results.to_csv('Resultados de Mediciones/PruebadeCarpeta.csv')
+results.to_csv('Resultados de Mediciones/SuperTwistingBeta10iter.csv')
 #cv2.imwrite('Original.png', frame)
 #cv2.imwrite('Mask.png', mask)
 #cv2.imwrite('Opening.png', opening)
 
-fig, axes = plt.subplots(nrows=2,ncols=1)
+fig, axes = plt.subplots(nrows=3,ncols=1)
 
 results.plot(x='Tiempo',y=['Angulo','Aprox'],ax=axes[0])
 results.plot(x='Tiempo',y=['Derivative'],ax=axes[1])
+results.plot(x='Tiempo',y=['Norma'],ax=axes[2])
 plt.show()
 cap.release()
 cv2.destroyAllWindows()
