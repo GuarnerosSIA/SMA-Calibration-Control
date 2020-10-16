@@ -6,9 +6,10 @@ import time
 import cv2
 import os
 
+#Angulo
 os.system('v4l2-ctl -c focus_auto=0')
 os.system('v4l2-ctl -c focus_absolute=0')
-os.system('v4l2-ctl -c brightness=0')
+
 
 #OpenSerialPort
 ser = serial.Serial()
@@ -63,7 +64,7 @@ while FLAG:
 
 
 
-
+os.system('v4l2-ctl -c brightness=0')
 
 ########
 
@@ -78,13 +79,13 @@ temp = {}
 
 #Elementos SuperTwisting
 xo = 0
-Tau = 0.3
+TauST = 0.3
 #w1 signal
 #w2 derivative
 w1_a = 0
 w2_a = 0
-l1 = 1
-l2 = 0.001
+l1 = 14
+l2 = 9
 
 #####Inicia PuertoSerial
 Tau=100
@@ -126,11 +127,12 @@ for steps in range(Tau):
             temp['Tiempo']=time.time()-Tic
             #SuperTwisting
             e1 = w1_a-dist
-            w1 = Tau*(w2_a - l1*np.sqrt(np.abs(e1))*np.sign(e1)) + w1_a
-            w2 = Tau*(-l2*np.sign(e1)) + w2_a
+            w1 = TauST*(w2_a - l1*(np.sqrt(np.abs(e1)))*np.sign(e1)) + w1_a
+            w2 = TauST*(-l2*np.sign(e1)) + w2_a
             w1_a = w1
             w2_a = w2
-            temp['Derivative']=e1
+            temp['Aprox']=w1
+            temp['Derivative']=w2
             #tiempotl=time.time()
             results = results.append(temp, ignore_index=True)
         for c in contours:
@@ -142,8 +144,8 @@ for steps in range(Tau):
                 cv2.putText(opening, "centroid", (cX - 25, cY - 25),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
 
-    cv2.imshow('0',frame)
-    cv2.imshow('1',mask)
+#    cv2.imshow('0',frame)
+#    cv2.imshow('1',mask)
     cv2.imshow('2',opening)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         time.sleep(1)
@@ -151,10 +153,15 @@ for steps in range(Tau):
 
 ser.write(b'B')
 results.to_csv('Resultados de Mediciones/PruebadeCarpeta.csv')
-cv2.imwrite('Original.png', frame)
-cv2.imwrite('Mask.png', mask)
-cv2.imwrite('Opening.png', opening)
-results.plot(x='Tiempo',y=['Distancia','Derivative'])
+#cv2.imwrite('Original.png', frame)
+#cv2.imwrite('Mask.png', mask)
+#cv2.imwrite('Opening.png', opening)
+
+fig, axes = plt.subplots(nrows=3,ncols=1)
+
+results.plot(x='Tiempo',y=['Distancia'],ax=axes[0])
+results.plot(x='Tiempo',y=['Derivative'],ax=axes[1])
+results.plot(x='Tiempo',y=['Aprox'],ax=axes[2])
 plt.show()
 cap.release()
 cv2.destroyAllWindows()
