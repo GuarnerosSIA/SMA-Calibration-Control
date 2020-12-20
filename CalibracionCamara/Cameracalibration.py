@@ -9,7 +9,7 @@ from tempfile import TemporaryFile
 
 # termination criteria
 criteria = (cv.TERM_CRITERIA_EPS + cv.TERM_CRITERIA_MAX_ITER, 30, 0.001)
-squareSize=24.3
+squareSize=10.6
 # prepare object points, like (0,0,0), (1,0,0), (2,0,0) ....,(6,5,0)
 objp = np.zeros((6*9,3), np.float32)
 objp[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1,2)*squareSize#milimetros
@@ -36,7 +36,7 @@ for fname in images:
 
 ret, mtx, dist, rvecs, tvecs = cv.calibrateCamera(objpoints, imgpoints, gray.shape[::-1], None, None)
 
-img = cv.imread('Calibration0.png')
+img = cv.imread('Calibration1.png')
 h,  w = img.shape[:2]
 newcameramtx, roi = cv.getOptimalNewCameraMatrix(mtx, dist, (w,h), 1, (w,h))
 # undistort

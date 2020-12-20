@@ -1,20 +1,24 @@
 import cv2
 import os
 
+#This properties are not in the videocapture set properties
+#Then we need to impement it by the command window
 os.system('v4l2-ctl -c focus_auto=0')
 os.system('v4l2-ctl -c focus_absolute=0')
-os.system('v4l2-ctl -c brightness=0')
+os.system('v4l2-ctl -c brightness=133')
 
+#Selection of the camera. Is the only one
 cam = cv2.VideoCapture(0)
 #Camera parameters
-cam.set(11,0)
+
+#Resolution
 cam.set(3,640) #Width
 cam.set(4,480) #Height
 
 cv2.namedWindow("Preview")
 #Create a window to preview the images
 
-img_calibration = 31
+img_calibration = 0
 #Creates the calibration numerator to take images
 
 while True:
