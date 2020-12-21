@@ -7,10 +7,15 @@ import cv2
 import os
 
 #Angulo
-os.system('v4l2-ctl -c focus_auto=0')
-os.system('v4l2-ctl -c focus_absolute=0')
-os.system('v4l2-ctl -c brightness=133')
 
+#This commands are for the raspberry or Linux Systems. We need to desactivate the autofocus
+#and set it to 0
+
+#os.system('v4l2-ctl -c focus_auto=0')
+#os.system('v4l2-ctl -c focus_absolute=0')
+#os.system('v4l2-ctl -c brightness=133')
+
+# Communication with the arduino. 
 
 #OpenSerialPort
 #ser = serial.Serial()
@@ -19,20 +24,23 @@ os.system('v4l2-ctl -c brightness=133')
 #ser.timeout=0.1
 #ser.open()
 
-cap = cv2.VideoCapture(0)
+#Open the camera, and wait a second 
+cap = cv2.VideoCapture(1)
 time.sleep(1)
-#cap.set(11,0)
+
+#Quality of the camera
 cap.set(3,640) #Width
 cap.set(4,480) #Height
-#cap.set(cv2.CAP_PROP_BRIGHTNESS,0)
-#IMPORTANTE. SIEMPRE QUITAR EL AUTOFOCUS v4l2-ctl -c focus_auto=0
+
+#This property is for the windows system. We desactivate the autofocus
+cap.set(cv2.CAP_PROP_AUTOFOCUS,0)
  
 #####Obtener posicion del tablero
 criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001)
 objp = np.zeros((6*9,3), np.float32)
 objp[:,:2] = np.mgrid[0:9,0:6].T.reshape(-1,2)*10.6#milimetros
 objpoints = [] # 3d point in real world space
-imgpoints = [] # 2d points in image plane.
+imgpoints = [] # 2d points in image plane
 
 with open('mtx.npy', 'rb') as f:
     mtx = np.load(f)
@@ -48,7 +56,7 @@ while FLAG:
     if ret == True:
         objpoints.append(objp)
         corners2 = cv2.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
-        imgpoints.append(corners)
+        imgpoints.append(corners2)
         # Draw and display the corners
         _, rvecs, tvecs, inliers = cv2.solvePnPRansac(objp, corners2, mtx, coef)
         R = cv2.Rodrigues(rvecs)[0]
@@ -65,7 +73,7 @@ while FLAG:
 
 
 
-os.system('v4l2-ctl -c brightness=100')
+#os.system('v4l2-ctl -c brightness=100')
 
 ########
 
@@ -89,7 +97,7 @@ l1 = 14
 l2 = 9
 
 #####Inicia PuertoSerial
-Tau=100
+Tau=1000
 FlagCool=0
 for steps in range(Tau):
     if(steps==0):
@@ -153,7 +161,7 @@ for steps in range(Tau):
         break
 
 #ser.write(b'B')
-#results.to_csv('Resultados de Mediciones/PruebadeCarpeta.csv')
+results.to_csv('Resultados de Mediciones/PruebadeCarpeta.csv')
 #cv2.imwrite('Original.png', frame)
 #cv2.imwrite('Mask.png', mask)
 #cv2.imwrite('Opening.png', opening)
