@@ -6,6 +6,7 @@ import time
 import cv2
 import os
 
+#Whaaat
 #Angulo
 os.system('v4l2-ctl -c focus_auto=0')
 os.system('v4l2-ctl -c focus_absolute=0')
