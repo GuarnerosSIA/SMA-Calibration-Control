@@ -63,6 +63,8 @@ while FLAG:
         corners2 = cv2.cornerSubPix(gray,corners, (11,11), (-1,-1), criteria)
         imgpoints.append(corners2)
         # Draw and display the corners
+        # Then, the rotation matrix is computed. Is composed by the rotation componenets of the semiplanes
+        # X and Y and the tranlation matrix
         _, rvecs, tvecs, inliers = cv2.solvePnPRansac(objp, corners2, mtx, coef)
         R = cv2.Rodrigues(rvecs)[0]
         R = np.concatenate((R[:,0:2],tvecs),axis=1)
